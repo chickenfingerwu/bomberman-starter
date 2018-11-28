@@ -5,7 +5,20 @@ import uet.oop.bomberman.Game;
 import uet.oop.bomberman.entities.Entity;
 import uet.oop.bomberman.entities.character.Bomber;
 
+import java.awt.event.*;
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.io.File;
+import java.io.IOException;
+
+import static java.lang.Math.abs;
 
 /**
  * Xử lý render cho tất cả Entity và một số màn hình phụ ra Game Panel
@@ -86,6 +99,7 @@ public class Screen {
 	}
 	
 	public void drawEndGame(Graphics g, int points) {
+
 		g.setColor(Color.black);
 		g.fillRect(0, 0, getRealWidth(), getRealHeight());
 		
@@ -98,6 +112,21 @@ public class Screen {
 		g.setFont(font);
 		g.setColor(Color.yellow);
 		drawCenteredString("POINTS: " + points, getRealWidth(), getRealHeight() + (Game.TILES_SIZE * 2) * Game.SCALE, g);
+
+		font = new Font("Arial", Font.PLAIN, 12 * Game.SCALE);
+		g.setFont(font);
+		g.setColor(Color.magenta);
+		drawCenteredString("PRESS ENTER TO RESTART LEVEL", getRealWidth(), getRealHeight() + (Game.TILES_SIZE * 4) * Game.SCALE, g);
+
+		int w = getRealWidth();
+		int h = getRealHeight() + (Game.TILES_SIZE * 4) * Game.SCALE;
+
+		FontMetrics fm = g.getFontMetrics();
+		int x = (w - fm.stringWidth("RESTART LEVEL")) / 2;
+		int y = (fm.getAscent() + (h - (fm.getAscent() + fm.getDescent())) / 2);
+
+		Rectangle r = new Rectangle(x, y, w, h);
+		Area a = new Area(r);
 	}
 
 	public void drawChangeLevel(Graphics g, int level) {

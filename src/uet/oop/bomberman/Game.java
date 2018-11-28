@@ -2,9 +2,11 @@ package uet.oop.bomberman;
 
 import uet.oop.bomberman.graphics.Screen;
 import uet.oop.bomberman.gui.Frame;
+import uet.oop.bomberman.input.Audio;
 import uet.oop.bomberman.input.Keyboard;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -22,6 +24,8 @@ public class Game extends Canvas {
 	public static int SCALE = 3;
 	
 	public static final String TITLE = "BombermanGame";
+
+	boolean restartGame = false;
 	
 	private static final int BOMBRATE = 1;
 	private static final int BOMBRADIUS = 1;
@@ -40,8 +44,10 @@ public class Game extends Canvas {
 	protected int _screenDelay = SCREENDELAY;
 	
 	private Keyboard _input;
+	private static Audio _audio;
 	private boolean _running = false;
 	private boolean _paused = true;
+	private static boolean _poweredUp = false;
 	
 	private Board _board;
 	private Screen screen;
@@ -56,8 +62,10 @@ public class Game extends Canvas {
 		
 		screen = new Screen(WIDTH, HEIGHT);
 		_input = new Keyboard();
-		
+		_audio = new Audio();
+
 		_board = new Board(this, _input, screen);
+
 		addKeyListener(_input);
 	}
 	
@@ -78,10 +86,9 @@ public class Game extends Canvas {
 		}
 		
 		Graphics g = bs.getDrawGraphics();
-		
 		g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
 		_board.renderMessages(g);
-		
+
 		g.dispose();
 		bs.show();
 	}
@@ -107,10 +114,10 @@ public class Game extends Canvas {
 		_input.update();
 		_board.update();
 	}
+
 	
 	public void start() {
 		_running = true;
-		
 		long  lastTime = System.nanoTime();
 		long timer = System.currentTimeMillis();
 		final double ns = 1000000000.0 / 60.0; //nanosecond, 60 frames per second
@@ -138,7 +145,10 @@ public class Game extends Canvas {
 			} else {
 				renderGame();
 			}
-				
+
+			if(restartGame){
+				resetGameVariables();
+			}
 			
 			frames++;
 			if(System.currentTimeMillis() - timer > 1000) {
@@ -154,6 +164,24 @@ public class Game extends Canvas {
 			}
 		}
 	}
+
+	public void resetGameVariables() {
+		_paused = false;
+		_audio.getGameOver().stop();
+		_board.getBomber().remove();
+		_board.getBomber().setAlive();
+		addBombRate(-(getBombRate() - 1));
+		addBombRadius(-(getBombRadius() - 1));
+		addBomberSpeed(-(getBomberSpeed() - 1));
+		_board.getLevel().createEntities();
+		_board.getBombs().clear();
+		_audio.getStageTheme().start();
+		restartGame = false;
+	}
+
+	public static void playSoundEffect(){
+		_audio.playPowerUp();
+	}
 	
 	public static double getBomberSpeed() {
 		return bomberSpeed;
@@ -163,9 +191,7 @@ public class Game extends Canvas {
 		return bombRate;
 	}
 	
-	public static int getBombRadius() {
-		return bombRadius;
-	}
+	public static int getBombRadius() { return bombRadius; }
 	
 	public static void addBomberSpeed(double i) {
 		bomberSpeed += i;
@@ -183,8 +209,16 @@ public class Game extends Canvas {
 		_screenDelay = SCREENDELAY;
 	}
 
+	public Keyboard get_input() {
+		return _input;
+	}
+
 	public Board getBoard() {
 		return _board;
+	}
+
+	public void restartGame(){
+		restartGame = true;
 	}
 
 	public boolean isPaused() {
@@ -194,5 +228,6 @@ public class Game extends Canvas {
 	public void pause() {
 		_paused = true;
 	}
-	
+
+	public static Audio getAudio() { return _audio; }
 }

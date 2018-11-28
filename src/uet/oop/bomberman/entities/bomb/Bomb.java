@@ -1,10 +1,14 @@
 package uet.oop.bomberman.entities.bomb;
 
 import uet.oop.bomberman.Board;
+import uet.oop.bomberman.Game;
 import uet.oop.bomberman.entities.AnimatedEntitiy;
 import uet.oop.bomberman.entities.Entity;
+import uet.oop.bomberman.entities.character.Bomber;
+import uet.oop.bomberman.entities.character.enemy.Enemy;
 import uet.oop.bomberman.graphics.Screen;
 import uet.oop.bomberman.graphics.Sprite;
+import uet.oop.bomberman.level.Coordinates;
 
 public class Bomb extends AnimatedEntitiy {
 
@@ -12,7 +16,7 @@ public class Bomb extends AnimatedEntitiy {
 	public int _timeAfter = 20;
 	
 	protected Board _board;
-	protected Flame[] _flames;
+	protected Flame[] _flames = new Flame[4];
 	protected boolean _exploded = false;
 	protected boolean _allowedToPassThru = true;
 	
@@ -30,13 +34,14 @@ public class Bomb extends AnimatedEntitiy {
 		else {
 			if(!_exploded) 
 				explode();
-			else
+			else {
 				updateFlames();
-			
-			if(_timeAfter > 0) 
+			}
+			if(_timeAfter > 0)
 				_timeAfter--;
-			else
+			else {
 				remove();
+			}
 		}
 			
 		animate();
@@ -73,10 +78,23 @@ public class Bomb extends AnimatedEntitiy {
      */
 	protected void explode() {
 		_exploded = true;
-		
+		_timeToExplode = 0;
+		//_board.getGame().getAudio().playExploding();
+		_board.getGame().getAudio().playGoofyYell();
 		// TODO: xử lý khi Character đứng tại vị trí Bomb
-		
+		int bombX = Coordinates.pixelToTile(_board.getBomber().getX());
+		int bombY = Coordinates.pixelToTile(_board.getBomber().getY()) - 1;
+
+		if(bombX == _x && bombY == _y){
+			_board.getBomber().kill();
+		}
+
 		// TODO: tạo các Flame
+		int _direction = 0;
+		for(int i = 0; i < 4; i++){
+			_flames[i] = new Flame((int) _x,(int) _y, _direction, (int) Game.getBombRadius(), _board);
+			_direction++;
+		}
 	}
 	
 	public FlameSegment flameAt(int x, int y) {
@@ -95,6 +113,33 @@ public class Bomb extends AnimatedEntitiy {
 	public boolean collide(Entity e) {
         // TODO: xử lý khi Bomber đi ra sau khi vừa đặt bom (_allowedToPassThru)
         // TODO: xử lý va chạm với Flame của Bomb khác
-        return false;
+		if(e instanceof Bomber || e instanceof Enemy){
+			if(!_allowedToPassThru){
+				return false;
+			}
+			//4 side of the bomb sprite
+			int xBombLeft = Coordinates.tileToPixel(_x);
+			int yBombUp = Coordinates.tileToPixel(_y);
+			int xBombRight = xBombLeft + Game.TILES_SIZE;
+			int yBombBottom = yBombUp + Game.TILES_SIZE;
+
+			//4 side of bomber sprite
+			int xBomberLeft = (int) e.getX();
+			int yBomberUp = (int) e.getY() - Game.TILES_SIZE;
+			int xBomberRight = xBomberLeft + e.getSprite().get_realWidth();
+			int yBomberBottom = yBomberUp + e.getSprite().get_realHeight();
+
+			if (xBombLeft >= xBomberRight || xBombRight <= xBomberLeft || yBombUp >= yBomberBottom || yBombBottom <= yBomberUp) {
+				_allowedToPassThru = false;
+			}
+			return _allowedToPassThru;
+		}
+		if(e instanceof FlameSegment || e instanceof Flame){
+			if(!_exploded){
+				explode();
+				return true;
+			}
+		}
+		return false;
 	}
 }

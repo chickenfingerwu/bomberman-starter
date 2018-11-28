@@ -3,7 +3,9 @@ package uet.oop.bomberman.entities.character;
 import uet.oop.bomberman.Board;
 import uet.oop.bomberman.Game;
 import uet.oop.bomberman.entities.AnimatedEntitiy;
+import uet.oop.bomberman.entities.Entity;
 import uet.oop.bomberman.graphics.Screen;
+import uet.oop.bomberman.level.Coordinates;
 
 /**
  * Bao gồm Bomber và Enemy
@@ -15,6 +17,7 @@ public abstract class Character extends AnimatedEntitiy {
 	protected boolean _alive = true;
 	protected boolean _moving = false;
 	public int _timeAfter = 40;
+
 	
 	public Character(int x, int y, Board board) {
 		_x = x;

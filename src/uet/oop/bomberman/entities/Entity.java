@@ -27,7 +27,15 @@ public abstract class Entity implements IRender {
 	 */
 	@Override
 	public abstract void render(Screen screen);
-	
+
+	public Coordinates getFarRight(){
+		return new Coordinates( Coordinates.tileToPixel(_x) + _sprite.get_realWidth(),Coordinates.tileToPixel(_y));
+	}
+
+	public Coordinates getBottomLeft(){
+		return new Coordinates(Coordinates.tileToPixel(_x), Coordinates.tileToPixel(_y) + _sprite.get_realHeight());
+	}
+
 	public void remove() {
 		_removed = true;
 	}

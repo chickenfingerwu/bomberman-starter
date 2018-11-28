@@ -1,8 +1,20 @@
 package uet.oop.bomberman.entities.bomb;
 
 import uet.oop.bomberman.Board;
+import uet.oop.bomberman.Game;
 import uet.oop.bomberman.entities.Entity;
+import uet.oop.bomberman.entities.LayeredEntity;
+import uet.oop.bomberman.entities.character.Bomber;
+import uet.oop.bomberman.entities.character.Character;
+import uet.oop.bomberman.entities.character.enemy.Balloon;
+import uet.oop.bomberman.entities.character.enemy.Enemy;
+import uet.oop.bomberman.entities.tile.Grass;
+import uet.oop.bomberman.entities.tile.Tile;
+import uet.oop.bomberman.entities.tile.Wall;
+import uet.oop.bomberman.entities.tile.destroyable.Brick;
+import uet.oop.bomberman.entities.tile.destroyable.DestroyableTile;
 import uet.oop.bomberman.graphics.Screen;
+import uet.oop.bomberman.level.Coordinates;
 
 public class Flame extends Entity {
 
@@ -42,9 +54,37 @@ public class Flame extends Entity {
 		/**
 		 * biến last dùng để đánh dấu cho segment cuối cùng
 		 */
-		boolean last;
-
+		boolean last = false;
+		if(_flameSegments.length == 0){
+			last = true;
+			return;
+		}
+		int xt = 0;
+		int yt = 0;
+		switch (_direction){
+			case 0:
+				yt = -1;
+				break;
+			case 1:
+				xt = 1;
+				break;
+			case 2:
+				yt = 1;
+				break;
+			case 3:
+				xt = -1;
+				break;
+		}
 		// TODO: tạo các segment dưới đây
+		int copy_xOrigin = xOrigin;
+		int copy_yOrigin = yOrigin;
+
+		for(int i = 0; i < _flameSegments.length; i++){
+			if(i == _flameSegments.length - 1){
+				last = true;
+			}
+			_flameSegments[i] = new FlameSegment(copy_xOrigin+=xt, copy_yOrigin+=yt, _direction, last);
+		}
 	}
 
 	/**
@@ -53,7 +93,52 @@ public class Flame extends Entity {
 	 */
 	private int calculatePermitedDistance() {
 		// TODO: thực hiện tính toán độ dài của Flame
-		return 1;
+		int xEntity = xOrigin;
+		int yEntity = yOrigin;
+		Entity a = null;
+		int testLengthX = 0;
+		int testLengthY = 0;
+		int testLength = 0;
+		switch (_direction){
+			case 0:
+				testLengthY = -1;
+				break;
+			case 1:
+				testLengthX = 1;
+				break;
+			case 2:
+				testLengthY = 1;
+				break;
+			case 3:
+				testLengthX = -1;
+				break;
+		}
+		while (testLength < _radius)
+		{
+			if((xEntity + testLengthX < _board.getWidth() - 1 && xEntity + testLengthX >= 1)
+					&& (yEntity + testLengthY < _board.getHeight() - 1 && yEntity + testLengthY >= 1)) {
+				a = _board.getEntityAt(xEntity += testLengthX, yEntity += testLengthY);
+				if(a instanceof LayeredEntity){
+					Entity s = ((LayeredEntity) a).getTopEntity();
+					if(s instanceof Grass){
+						testLength++;
+						continue;
+					}
+					if(s instanceof DestroyableTile) {
+						((DestroyableTile) s).destroy();
+						return testLength;
+					}
+				}
+				if(!(a instanceof Grass)){
+					return testLength;
+				}
+			}
+			else {
+				return testLength;
+			}
+			testLength++;
+		}
+		return testLength;
 	}
 	
 	public FlameSegment flameSegmentAt(int x, int y) {
@@ -65,7 +150,29 @@ public class Flame extends Entity {
 	}
 
 	@Override
-	public void update() {}
+	public void update() {
+		Character character = null;
+		Bomb bomb = null;
+		for(int i = 0; i < _flameSegments.length; i++) {
+			Entity flame = _flameSegments[i];
+			character = _board.getCharacterAt((int) flame.getX(), (int) flame.getY());
+			bomb = _board.getBombAt(flame.getX(), flame.getY());
+			if(bomb != null){
+				if(!bomb._exploded) {
+					bomb.explode();
+				}
+			}
+			if (character != null) {
+
+				if (flame.getBottomLeft()._x <= character.getFarRight()._x ||
+						flame.getBottomLeft()._y <= character.getFarRight()._y ||
+						flame.getFarRight()._x >= character.getBottomLeft()._x ||
+						flame.getFarRight()._y >= character.getBottomLeft()._y) {
+					character.kill();
+				}
+			}
+		}
+	}
 	
 	@Override
 	public void render(Screen screen) {
@@ -77,6 +184,14 @@ public class Flame extends Entity {
 	@Override
 	public boolean collide(Entity e) {
 		// TODO: xử lý va chạm với Bomber, Enemy. Chú ý đối tượng này có vị trí chính là vị trí của Bomb đã nổ
-		return true;
+		if(e instanceof Character){
+			((Character) e).kill();
+			return true;
+		}
+		if(e instanceof Bomb){
+			((Bomb) e).explode();
+			return true;
+		}
+		return false;
 	}
 }

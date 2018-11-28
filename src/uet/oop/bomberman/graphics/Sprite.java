@@ -187,7 +187,15 @@ public class Sprite {
 		_realHeight = rh;
 		load();
 	}
-	
+
+	public int get_realHeight() {
+		return _realHeight;
+	}
+
+	public int get_realWidth() {
+		return _realWidth;
+	}
+
 	public Sprite(int size, int color) {
 		SIZE = size;
 		_pixels = new int[SIZE * SIZE];

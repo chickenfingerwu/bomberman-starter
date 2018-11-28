@@ -17,7 +17,6 @@ public class GamePanel extends JPanel {
 		setPreferredSize(new Dimension(Game.WIDTH * Game.SCALE, Game.HEIGHT * Game.SCALE));
 
 		_game = new Game(frame);
-
 		add(_game);
 
 		_game.setVisible(true);
