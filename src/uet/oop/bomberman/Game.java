@@ -1,15 +1,22 @@
 package uet.oop.bomberman;
 
+import org.w3c.dom.events.Event;
+import uet.oop.bomberman.exceptions.LoadLevelException;
 import uet.oop.bomberman.graphics.Screen;
 import uet.oop.bomberman.gui.Frame;
 import uet.oop.bomberman.input.Audio;
 import uet.oop.bomberman.input.Keyboard;
 
+import javax.imageio.ImageIO;
+import javax.sound.sampled.Clip;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Tạo vòng lặp cho game, lưu trữ một vài tham số cấu hình toàn cục,
@@ -26,7 +33,8 @@ public class Game extends Canvas {
 	public static final String TITLE = "BombermanGame";
 
 	boolean restartGame = false;
-	
+
+	private static int BOMBERLIVES = 3;
 	private static final int BOMBRATE = 1;
 	private static final int BOMBRADIUS = 1;
 	private static final double BOMBERSPEED = 1.0;
@@ -39,7 +47,7 @@ public class Game extends Canvas {
 	protected static int bombRate = BOMBRATE;
 	protected static int bombRadius = BOMBRADIUS;
 	protected static double bomberSpeed = BOMBERSPEED;
-	
+	protected static int bomberLives =  BOMBERLIVES;
 	
 	protected int _screenDelay = SCREENDELAY;
 	
@@ -52,14 +60,14 @@ public class Game extends Canvas {
 	private Board _board;
 	private Screen screen;
 	private Frame _frame;
-	
+
 	private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
 	private int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
 	
 	public Game(Frame frame) {
 		_frame = frame;
 		_frame.setTitle(TITLE);
-		
+
 		screen = new Screen(WIDTH, HEIGHT);
 		_input = new Keyboard();
 		_audio = new Audio();
@@ -113,6 +121,7 @@ public class Game extends Canvas {
 	private void update() {
 		_input.update();
 		_board.update();
+		_audio.update();
 	}
 
 	
@@ -125,6 +134,7 @@ public class Game extends Canvas {
 		int frames = 0;
 		int updates = 0;
 		requestFocus();
+		boolean isPausing = false;
 		while(_running) {
 			long now = System.nanoTime();
 			delta += (now - lastTime) / ns;
@@ -134,17 +144,49 @@ public class Game extends Canvas {
 				updates++;
 				delta--;
 			}
-			
+
 			if(_paused) {
 				if(_screenDelay <= 0) {
 					_board.setShow(-1);
 					_paused = false;
 				}
-					
+                if(isPausing) {
+                    _board.setShow(3);
+                    _audio.setMusicOff();
+                }
 				renderScreen();
 			} else {
 				renderGame();
 			}
+
+
+			/**
+			* check if the user pressed pause
+			 */
+
+			if(_input.escape){
+			    if(!isPausing){
+                    pause();
+                    resetScreenDelay();
+                }
+                else {
+                    _paused = false;
+                }
+            }
+            else {
+                if(_paused && _board.getShow() != 2 && _board.getShow() != 1){
+                    isPausing = true;
+                }
+                if(!_paused && isPausing){
+                    isPausing = false;
+                    //_audio.getStageTheme().loop(Clip.LOOP_CONTINUOUSLY);
+					_audio.setMusicOn();
+                }
+            }
+
+			/**
+			 * check for restarting game
+			 */
 
 			if(restartGame){
 				resetGameVariables();
@@ -167,15 +209,14 @@ public class Game extends Canvas {
 
 	public void resetGameVariables() {
 		_paused = false;
-		_audio.getGameOver().stop();
 		_board.getBomber().remove();
 		_board.getBomber().setAlive();
 		addBombRate(-(getBombRate() - 1));
 		addBombRadius(-(getBombRadius() - 1));
 		addBomberSpeed(-(getBomberSpeed() - 1));
-		_board.getLevel().createEntities();
-		_board.getBombs().clear();
-		_audio.getStageTheme().start();
+		Game.getAudio().getCurrentMusic().stop();
+		_board.loadLevel(_board.getLevel().getLevel());
+		_board.resetTime();
 		restartGame = false;
 	}
 
@@ -228,6 +269,8 @@ public class Game extends Canvas {
 	public void pause() {
 		_paused = true;
 	}
+
+	public static int getBOMBERLIVES(){ return bomberLives; }
 
 	public static Audio getAudio() { return _audio; }
 }

@@ -106,7 +106,6 @@ public abstract class Enemy extends Character {
 			_steps--;
 		}
 		else {
-
 			_steps = 0;
 			_moving = false;
 		}
@@ -160,7 +159,9 @@ public abstract class Enemy extends Character {
 		}
 
 		if(e instanceof Bomber) {
-			((Bomber) e).kill();
+			if(_alive){
+				((Bomber) e).kill();
+			}
 			return true;
 		}
 

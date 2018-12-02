@@ -1,5 +1,6 @@
 package uet.oop.bomberman.entities;
 
+import uet.oop.bomberman.Game;
 import uet.oop.bomberman.graphics.IRender;
 import uet.oop.bomberman.graphics.Screen;
 import uet.oop.bomberman.graphics.Sprite;
@@ -33,7 +34,7 @@ public abstract class Entity implements IRender {
 	}
 
 	public Coordinates getBottomLeft(){
-		return new Coordinates(Coordinates.tileToPixel(_x), Coordinates.tileToPixel(_y) + _sprite.get_realHeight());
+		return new Coordinates(Coordinates.tileToPixel(_x), Coordinates.tileToPixel(_y) + Game.TILES_SIZE);
 	}
 
 	public void remove() {

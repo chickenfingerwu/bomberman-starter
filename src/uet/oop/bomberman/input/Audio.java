@@ -4,14 +4,14 @@ import javafx.scene.media.AudioClip;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 
 public class Audio extends JFrame {
 
+    boolean musicOn = true;
+
+    Thread stageThemeThread;
 
     AudioInputStream title_screen = null;
     AudioInputStream stage_start = null;
@@ -27,6 +27,7 @@ public class Audio extends JFrame {
     AudioInputStream powerup = null;
     AudioInputStream goofy_yell = null;
 
+    Clip currentMusic = null;
     Clip stageStart = null;
     Clip stageTheme = null;
     Clip powerUpEffect = null;
@@ -57,7 +58,7 @@ public class Audio extends JFrame {
             Ending = AudioSystem.getClip();
             goofyYell = AudioSystem.getClip();
 
-            goofy_yell = AudioSystem.getAudioInputStream(new File("res/audio/goofy-yell.wav"));
+            goofy_yell = AudioSystem.getAudioInputStream(new File("res/audio/bomb.wav"));
             title_screen = AudioSystem.getAudioInputStream(new File("res/audio/01_Title Screen.wav"));
             stage_start = AudioSystem.getAudioInputStream(new File("res/audio/02_Stage Start.wav"));
             stage_theme = AudioSystem.getAudioInputStream(new File("res/audio/level1.wav"));
@@ -85,11 +86,11 @@ public class Audio extends JFrame {
             Ending.open(ending);
             goofyYell.open(goofy_yell);
 
-            //Increase powerup sound effect by 20 decibels
-            float dB = (float) (Math.log(.5D) / Math.log(10.0) * 20.0);
+
+            // Reduce stage start music by 10 decibels
             FloatControl gainControlPowerUp =
-                    (FloatControl) stageTheme.getControl(FloatControl.Type.MASTER_GAIN);
-            gainControlPowerUp.setValue(dB);
+                    (FloatControl) stageStart.getControl(FloatControl.Type.MASTER_GAIN);
+            gainControlPowerUp.setValue(-10.0f);
             // Reduce stage theme by 10 decibels
             FloatControl gainControl =
                     (FloatControl) stageTheme.getControl(FloatControl.Type.MASTER_GAIN);
@@ -114,18 +115,25 @@ public class Audio extends JFrame {
         stageStart.start();
     }
     public void playStageStart(){
-        stageStart.stop();
-        stageStart.setFramePosition(0);
-        stageStart.start();
+        if(musicOn) {
+            stageStart.stop();
+            stageStart.setFramePosition(0);
+            stageStart.start();
+        }
 
     }
 
     public void loadStageTheme(int level){
+        String path = "res/audio/level" + level + ".wav";
+        File stageFile = new File(path);
+        if(stageFile == null){
+            stageFile = new File("res/audio/03_Stage Theme");
+        }
+
         try {
-            stage_theme = AudioSystem.getAudioInputStream(new File("res/audio/level" + level + ".wav"));
             stageTheme.close();
+            stage_theme = AudioSystem.getAudioInputStream(stageFile);
             stageTheme.open(stage_theme);
-            System.out.println("loaded stage " + level + "'s theme");
         }
         catch (LineUnavailableException e){
             e.printStackTrace();
@@ -139,23 +147,23 @@ public class Audio extends JFrame {
     }
 
     public void playStageTheme(){
-        stageTheme.loop(Clip.LOOP_CONTINUOUSLY);
-        /*try{
-            if(stageTheme!=null){
-                new Thread(){
+        if(musicOn) {
+            try {
+                if (stageTheme != null) {
+                    stageTheme.setFramePosition(0);
+                    stageTheme.loop(Clip.LOOP_CONTINUOUSLY);
+                /*new Thread(){
                     public void run(){
                         synchronized (stageTheme){
-                            stageTheme.stop();
-                            stageTheme.setFramePosition(0);
-                            stageTheme.start();
+                            stageTheme.loop(Clip.LOOP_CONTINUOUSLY);
                         }
                     }
-                }.start();
+                }.start();*/
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
-        catch (Exception e) {
-            e.printStackTrace();
-        }*/
     }
     public void playFindTheExit(){
         try {
@@ -235,9 +243,11 @@ public class Audio extends JFrame {
         lifeLost.start();
     }
     public void playGameOver(){
-        gameOver.stop();
-        gameOver.setFramePosition(0);
-        gameOver.start();
+        if(musicOn) {
+            gameOver.stop();
+            gameOver.setFramePosition(0);
+            gameOver.start();
+        }
     }
     public void playEnding(){
         try {
@@ -258,14 +268,34 @@ public class Audio extends JFrame {
         }
     }
     public void playExploding(){
-        explodingEffect.stop();
-        explodingEffect.setFramePosition(0);
-        explodingEffect.start();
+        try {
+        AudioInputStream gY = AudioSystem.getAudioInputStream(new File("res/audio/bomb.wav"));
+        Clip gy = AudioSystem.getClip();
+        gy.open(gY);
+        gy.start();
+        }
+        catch (UnsupportedAudioFileException e){
+            e.printStackTrace();
+        }
+        catch (LineUnavailableException e){
+            e.printStackTrace();
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
     }
     public void playPowerUp(){
         powerUpEffect.stop();
         powerUpEffect.setFramePosition(0);
         powerUpEffect.start();
+    }
+
+    public void stopStageTheme(){
+        stageTheme.stop();
+    }
+
+    public void continueStageTheme(){
+        stageTheme.loop(Clip.LOOP_CONTINUOUSLY);
     }
 
     public void playGoofyYell(){
@@ -285,6 +315,8 @@ public class Audio extends JFrame {
             e.printStackTrace();
         }
     }
+
+    public Thread getStageThemeThread() { return stageThemeThread; }
 
     public Clip getStageStart(){
         return stageStart;
@@ -326,7 +358,49 @@ public class Audio extends JFrame {
         return titleScreen;
     }
 
-    protected void update(){
+    public void turnOffStageStart(){
+        stageStart.stop();
+    }
 
+    public void turnOnStageStart(){
+        stageStart.start();
+    }
+
+    public void setMusicOff(){
+        musicOn = false;
+    }
+
+    public void setMusicOn(){
+        musicOn = true;
+    }
+    public void update(){
+        if(!musicOn){
+            currentMusic.stop();
+        }
+        else {
+            if(currentMusic == stageStart){
+                currentMusic.start();
+            }
+            else if(currentMusic == stageTheme){
+                currentMusic.loop(Clip.LOOP_CONTINUOUSLY);
+            }
+            else if(currentMusic == gameOver){
+                currentMusic.start();
+            }
+        }
+    }
+    public boolean isMusicOn(){
+        return musicOn;
+    }
+
+    public Clip getCurrentMusic() {
+        return currentMusic;
+    }
+
+    public void setCurrentMusic(Clip currentMusic) {
+        currentMusic.stop();
+        currentMusic.setFramePosition(0);
+        this.currentMusic = currentMusic;
+        currentMusic.setFramePosition(0);
     }
 }

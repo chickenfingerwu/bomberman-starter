@@ -11,7 +11,7 @@ public class Keyboard implements KeyListener {
 
 	private boolean aKeyIsPressed;
 	private boolean[] keys = new boolean[120]; //120 is enough to this game
-	public boolean up, down, left, right, space, enter;
+	public boolean up, down, left, right, space, enter, escape;
 	
 	public void update() {
 		up = keys[KeyEvent.VK_UP] || keys[KeyEvent.VK_W];
@@ -20,30 +20,9 @@ public class Keyboard implements KeyListener {
 		right = keys[KeyEvent.VK_RIGHT] || keys[KeyEvent.VK_D];
 		space = keys[KeyEvent.VK_SPACE] || keys[KeyEvent.VK_X];
 		enter = keys[KeyEvent.VK_ENTER];
-		/*KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
-
-			@Override
-			public boolean dispatchKeyEvent(KeyEvent ke) {
-				synchronized (Keyboard.class) {
-					switch (ke.getID()) {
-						case KeyEvent.KEY_PRESSED:
-							if ((ke.getKeyCode() == KeyEvent.VK_W) || (ke.getKeyCode() == KeyEvent.VK_UP)) {
-
-							}
-							break;
-
-						case KeyEvent.KEY_RELEASED:
-							if (ke.getKeyCode() == KeyEvent.VK_W) {
-								wPressed = false;
-							}
-							break;
-					}
-					return false;
-				}
-			}
-		});
-	}*/
+		escape = keys[KeyEvent.VK_ESCAPE];
 	}
+
 
 	public boolean isKeyPressed(int keyEvent){
 		return keys[keyEvent];

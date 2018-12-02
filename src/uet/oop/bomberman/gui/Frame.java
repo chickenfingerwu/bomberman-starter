@@ -2,14 +2,18 @@ package uet.oop.bomberman.gui;
 
 import uet.oop.bomberman.Game;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Swing Frame chứa toàn bộ các component
  */
 public class Frame extends JFrame {
-	
+
 	public GamePanel _gamepane;
 	private JPanel _containerpane;
 	private InfoPanel _infopanel;
@@ -17,7 +21,7 @@ public class Frame extends JFrame {
 	private Game _game;
 
 	public Frame() {
-		
+
 		_containerpane = new JPanel(new BorderLayout());
 		_gamepane = new GamePanel(this);
 		_infopanel = new InfoPanel(_gamepane.getGame());
@@ -37,7 +41,7 @@ public class Frame extends JFrame {
 		
 		_game.start();
 	}
-	
+
 	public void setTime(int time) {
 		_infopanel.setTime(time);
 	}

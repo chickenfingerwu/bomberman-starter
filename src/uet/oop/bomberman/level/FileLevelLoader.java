@@ -5,10 +5,7 @@ import uet.oop.bomberman.Game;
 import uet.oop.bomberman.entities.LayeredEntity;
 import uet.oop.bomberman.entities.bomb.Bomb;
 import uet.oop.bomberman.entities.character.Bomber;
-import uet.oop.bomberman.entities.character.enemy.Balloon;
-import uet.oop.bomberman.entities.character.enemy.Kondoria;
-import uet.oop.bomberman.entities.character.enemy.Minvo;
-import uet.oop.bomberman.entities.character.enemy.Oneal;
+import uet.oop.bomberman.entities.character.enemy.*;
 import uet.oop.bomberman.entities.tile.Grass;
 import uet.oop.bomberman.entities.tile.Portal;
 import uet.oop.bomberman.entities.tile.Wall;
@@ -51,8 +48,6 @@ public class FileLevelLoader extends LevelLoader {
 
 			BufferedReader in = new BufferedReader(
 					new InputStreamReader(absPath.openStream()));
-			//int s = in.read();
-			System.out.println(level);
 			String data = in.readLine();
 			String[] Int = data.split(" ");
 			try {
@@ -134,6 +129,10 @@ public class FileLevelLoader extends LevelLoader {
 					case 'm':
 						_board.addCharacter(new Minvo(Coordinates.tileToPixel(x), Coordinates.tileToPixel(y) + Game.TILES_SIZE, _board));
 						break;
+					case 'd':
+						_board.addCharacter(new Doll(Coordinates.tileToPixel(x), Coordinates.tileToPixel(y) + Game.TILES_SIZE, _board));
+						break;
+
 
 					case 'b':
 						_board.addEntity(x + y * _width,
@@ -166,4 +165,7 @@ public class FileLevelLoader extends LevelLoader {
 		}
 	}
 
+	public static char[][] get_map() {
+		return _map;
+	}
 }

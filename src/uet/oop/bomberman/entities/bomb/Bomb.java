@@ -80,7 +80,7 @@ public class Bomb extends AnimatedEntitiy {
 		_exploded = true;
 		_timeToExplode = 0;
 		//_board.getGame().getAudio().playExploding();
-		_board.getGame().getAudio().playGoofyYell();
+		_board.getGame().getAudio().playExploding();
 		// TODO: xử lý khi Character đứng tại vị trí Bomb
 		int bombX = Coordinates.pixelToTile(_board.getBomber().getX());
 		int bombY = Coordinates.pixelToTile(_board.getBomber().getY()) - 1;

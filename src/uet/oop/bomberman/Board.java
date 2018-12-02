@@ -14,6 +14,7 @@ import uet.oop.bomberman.input.Keyboard;
 import uet.oop.bomberman.level.FileLevelLoader;
 import uet.oop.bomberman.level.LevelLoader;
 
+import javax.sound.sampled.Clip;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -37,6 +38,7 @@ public class Board implements IRender {
 	
 	private int _time = Game.TIME;
 	private int _points = Game.POINTS;
+	private int _levelPoint = 0;
 	
 	public Board(Game game, Keyboard input, Screen screen) {
 		_game = game;
@@ -55,7 +57,17 @@ public class Board implements IRender {
 		updateBombs();
 		updateMessages();
 		detectEndGame();
-		
+
+		if(!Game.getAudio().isMusicOn()) {
+			if(_screenToShow == 2){
+				Game.getAudio().setCurrentMusic(Game.getAudio().getStageStart());
+			}
+			else if(_screenToShow == 1){
+				Game.getAudio().setCurrentMusic(Game.getAudio().getGameOver());
+			}
+		}
+
+
 		for (int i = 0; i < _characters.size(); i++) {
 			Character a = _characters.get(i);
 			if(a.isRemoved()) _characters.remove(i);
@@ -86,9 +98,15 @@ public class Board implements IRender {
 	}
 	
 	public void nextLevel() {
+		_points += _levelPoint;
 		loadLevel(_levelLoader.getLevel() + 1);
 	}
-	
+
+	/**
+	 * play stage's music, load level
+	 * @param level
+	 */
+
 	public void loadLevel(int level) {
 
 		_time = Game.TIME;
@@ -104,17 +122,35 @@ public class Board implements IRender {
 			_entities = new Entity[_levelLoader.getHeight() * _levelLoader.getWidth()];
 
 			_levelLoader.createEntities();
-
-			Game.getAudio().getStageTheme().stop();
+			_levelPoint = 0;
+			//play the next theme song
 			Game.getAudio().loadStageTheme(level);
-			Game.getAudio().playStageStart();
-			Game.getAudio().playStageTheme();
+			//start new thread to run background music
+				Game.getAudio().setCurrentMusic(Game.getAudio().getStageStart());
+				new Thread() {
+					public void run() {
+						synchronized (Game.getAudio().getStageTheme()) {
+							//wait for the beginning music to finish
+							while (Game.getAudio().getCurrentMusic().getMicrosecondLength() != Game.getAudio().getCurrentMusic().getMicrosecondPosition()) {
+							}
+							Game.getAudio().setCurrentMusic(Game.getAudio().getStageTheme());
+						}
+					}
+				}.start();
 		} catch (LoadLevelException e) {
 			System.out.println("can't load level");
 			endGame();
 		}
 	}
-	
+
+	protected void resetTime(){
+		_time = Game.TIME;
+	}
+
+	protected void resetPoint(){
+		_points = Game.POINTS;
+	}
+
 	protected void detectEndGame() {
 		if(_time <= 0)
 			endGame();
@@ -124,8 +160,8 @@ public class Board implements IRender {
 		_screenToShow = 1;
 		_game.resetScreenDelay();
 		_game.pause();
-		Game.getAudio().getStageTheme().stop();
-		Game.getAudio().playGameOver();
+		Game.getAudio().getCurrentMusic().stop();
+		Game.getAudio().setCurrentMusic(Game.getAudio().getGameOver());
 	}
 	
 	public boolean detectNoEnemies() {
@@ -370,11 +406,11 @@ public class Board implements IRender {
 	}
 
 	public int getPoints() {
-		return _points;
+		return _points+_levelPoint;
 	}
 
 	public void addPoints(int points) {
-		this._points += points;
+		this._levelPoint += points;
 	}
 	
 	public int getWidth() {
@@ -388,4 +424,5 @@ public class Board implements IRender {
 	public Keyboard get_input() {
 		return _input;
 	}
+
 }

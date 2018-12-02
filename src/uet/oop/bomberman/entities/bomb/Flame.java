@@ -115,8 +115,8 @@ public class Flame extends Entity {
 		}
 		while (testLength < _radius)
 		{
-			if((xEntity + testLengthX < _board.getWidth() - 1 && xEntity + testLengthX >= 1)
-					&& (yEntity + testLengthY < _board.getHeight() - 1 && yEntity + testLengthY >= 1)) {
+			if((xEntity + testLengthX < _board.getWidth() && xEntity + testLengthX >= 0)
+					&& (yEntity + testLengthY < _board.getHeight() - 1 && yEntity + testLengthY >= 0)) {
 				a = _board.getEntityAt(xEntity += testLengthX, yEntity += testLengthY);
 				if(a instanceof LayeredEntity){
 					Entity s = ((LayeredEntity) a).getTopEntity();
@@ -151,8 +151,24 @@ public class Flame extends Entity {
 
 	@Override
 	public void update() {
-		Character character = null;
-		Bomb bomb = null;
+		//check original flame for characters or bomber or bombs
+		Character character = _board.getCharacterAt((int) this.getX(), (int) this.getY());
+		Bomb bomb = _board.getBombAt(this.getX(), this.getY());
+		if(character != null) {
+			if (this.getBottomLeft()._x <= character.getFarRight()._x ||
+					this.getBottomLeft()._y <= character.getFarRight()._y ||
+					this.getFarRight()._x >= character.getBottomLeft()._x ||
+					this.getFarRight()._y >= character.getBottomLeft()._y) {
+				character.kill();
+			}
+		}
+		if(bomb != null){
+			if(!bomb._exploded) {
+				bomb.explode();
+			}
+		}
+
+		//check flame segments for characters
 		for(int i = 0; i < _flameSegments.length; i++) {
 			Entity flame = _flameSegments[i];
 			character = _board.getCharacterAt((int) flame.getX(), (int) flame.getY());
