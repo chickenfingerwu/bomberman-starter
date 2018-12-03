@@ -1,6 +1,8 @@
 package uet.oop.bomberman.entities.character.enemy.ai;
 
 import uet.oop.bomberman.Board;
+import uet.oop.bomberman.Game;
+import uet.oop.bomberman.entities.bomb.Bomb;
 import uet.oop.bomberman.entities.character.Bomber;
 import uet.oop.bomberman.entities.character.enemy.Enemy;
 import uet.oop.bomberman.entities.character.enemy.Kondoria;
@@ -37,9 +39,9 @@ public class PathFinderAIHigh {
         makePath();
     }
 
-    private boolean playerChangedPosition(){
-        return (_bomber.getXTile() != playerPos.get_x() || _bomber.getYTile() - 1 != playerPos.get_y());
-    }
+    /**
+     * update path
+     */
 
     public void update(){
         if(_bomber != null) {
@@ -50,6 +52,10 @@ public class PathFinderAIHigh {
             makePath();
         }
     }
+
+    /**
+     * load the map for the AI
+     */
 
     public void loadLevel() {
         map = new Coordinates[_height][_width];
@@ -83,6 +89,13 @@ public class PathFinderAIHigh {
         }
     }
 
+    /**
+     * find the nearest point in available tiles
+     * @param openList
+     * @param closedList
+     * @return
+     */
+
     public Coordinates findShortestDistance(ArrayList<Coordinates> openList, ArrayList<Coordinates> closedList){
         Coordinates shortest = null;
         if(openList.size() > 0) {
@@ -98,6 +111,9 @@ public class PathFinderAIHigh {
         return shortest;
     }
 
+    /**
+     * find shortest path to player
+     */
     public void findPath(){
         ArrayList<Coordinates> openList = new ArrayList<Coordinates>();
         ArrayList<Coordinates> closedList = new ArrayList<Coordinates>();
@@ -111,13 +127,13 @@ public class PathFinderAIHigh {
                 break;
             }
 
-            //array for all adjacent tile
+            //array for all adjacent tiles
             ArrayList<Coordinates> adjacentTiles = new ArrayList<Coordinates>();
 
             //up tile
             if(enenemyPos._y > 0) {
                 Coordinates upTile = map[enenemyPos._y - 1][enenemyPos._x];
-                if(upTile.isWalkable() && gameBoard.getBombAt(enenemyPos._x, enenemyPos._y - 1) == null) {
+                if(upTile.isWalkable()) {
                     adjacentTiles.add(upTile);
                 }
             }
@@ -125,7 +141,7 @@ public class PathFinderAIHigh {
             //right tile
             if(enenemyPos._x < _width - 1) {
                 Coordinates rightTile = map[enenemyPos._y][enenemyPos._x + 1];
-                if(rightTile.isWalkable() && gameBoard.getBombAt(enenemyPos._x + 1, enenemyPos._y) == null) {
+                if(rightTile.isWalkable()) {
                     adjacentTiles.add(rightTile);
                 }
             }
@@ -133,7 +149,7 @@ public class PathFinderAIHigh {
             //down tile
             if(enenemyPos._y < _height - 1) {
                 Coordinates downTile = map[enenemyPos._y + 1][enenemyPos._x];
-                if(downTile.isWalkable() && gameBoard.getBombAt(enenemyPos._x, enenemyPos._y + 1) == null) {
+                if(downTile.isWalkable()) {
                     adjacentTiles.add(downTile);
                 }
             }
@@ -141,7 +157,7 @@ public class PathFinderAIHigh {
             //left tile
             if(enenemyPos._x > 0) {
                 Coordinates leftTile = map[enenemyPos._y][enenemyPos._x - 1];
-                if(leftTile.isWalkable() && gameBoard.getBombAt(enenemyPos._x - 1, enenemyPos._y) == null) {
+                if(leftTile.isWalkable()) {
                     adjacentTiles.add(leftTile);
                 }
             }
@@ -151,29 +167,47 @@ public class PathFinderAIHigh {
                 if(closedList.contains(adjacent)) {
                     continue;
                 }
-                if(!openList.contains(adjacent)) {
-                    int costToOriginPos = Math.abs(adjacent._x - originPos._x) + Math.abs(adjacent._y - originPos._y);
-                    int costToDestination = Math.abs(adjacent._x - playerPos._x) + Math.abs(adjacent._y - playerPos._y);
-                    adjacent.setCostToOriginPos(costToOriginPos);
-                    adjacent.setCostToDestination(costToDestination);
-                    adjacent.setParents(enenemyPos);
-                    adjacent.calculatePoint();
-                    openList.add(adjacent);
-                }
-                else {
-                    int costToOriginPos = Math.abs(adjacent._x - originPos._x) + Math.abs(adjacent._y - originPos._y);
-                    int costToDestination = Math.abs(adjacent._x - playerPos._x) + Math.abs(adjacent._y - playerPos._y);
-                    int temp_point = costToOriginPos + costToDestination;
-                    if(temp_point < adjacent.getPoint()){
-                        adjacent.setCostToOriginPos(costToOriginPos);
-                        adjacent.setCostToDestination(costToDestination);
+
+                //check for bombs and other enemies before computing point
+                if(gameBoard.getBombAt(adjacent.get_x(), adjacent.get_y()) == null
+                && !(gameBoard.getCharacterAt(adjacent.get_x(), adjacent.get_y()) instanceof Enemy)
+                        && gameBoard.getBombAt(adjacent.get_x(), adjacent.get_y()) == null
+                && (gameBoard.getBombAt(adjacent.get_x() + Game.getBombRadius(), adjacent.get_y()) == null
+                && gameBoard.getBombAt(adjacent.get_x() - Game.getBombRadius(), adjacent.get_y()) == null
+                && gameBoard.getBombAt(adjacent.get_x(), adjacent.get_y() + Game.getBombRadius()) == null
+                && gameBoard.getBombAt(adjacent.get_x(), adjacent.get_y() + Game.getBombRadius()) == null)) {
+
+                    if (!openList.contains(adjacent)) {
+                        //compute the adjacent square point
+                        int costToOriginPos = Math.abs(adjacent._x - originPos._x) + Math.abs(adjacent._y - originPos._y);
+                        int costToDestination = Math.abs(adjacent._x - playerPos._x) + Math.abs(adjacent._y - playerPos._y);
+                        computePoint(adjacent, costToOriginPos, costToDestination);
                         adjacent.setParents(enenemyPos);
-                        adjacent.calculatePoint();
+                        openList.add(adjacent);
+                    } else {
+                        //compute the adjacent square point
+                        int costToOriginPos = Math.abs(adjacent._x - originPos._x) + Math.abs(adjacent._y - originPos._y);
+                        int costToDestination = Math.abs(adjacent._x - playerPos._x) + Math.abs(adjacent._y - playerPos._y);
+                        int temp_point = costToOriginPos + costToDestination;
+                        if (temp_point < adjacent.getPoint()) {
+                            computePoint(adjacent, costToOriginPos, costToDestination);
+                            adjacent.setParents(enenemyPos);
+                        }
                     }
                 }
             }
         }
     }
+
+    public void computePoint(Coordinates square, int costToOriginPos, int costToDestination){
+        square.setCostToOriginPos(costToOriginPos);
+        square.setCostToDestination(costToDestination);
+        square.calculatePoint();
+    }
+
+    /**
+     * backtrack the path
+     */
     public void makePath(){
         while (enenemyPos != originPos){
             if(enenemyPos != null) {
