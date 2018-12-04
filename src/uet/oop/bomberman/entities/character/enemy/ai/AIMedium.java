@@ -1,20 +1,28 @@
 package uet.oop.bomberman.entities.character.enemy.ai;
 
+import uet.oop.bomberman.Board;
+import uet.oop.bomberman.Game;
 import uet.oop.bomberman.entities.character.Bomber;
 import uet.oop.bomberman.entities.character.enemy.Enemy;
 
 public class AIMedium extends AI {
+	Board _board;
 	Bomber _bomber;
 	Enemy _e;
 	
-	public AIMedium(Bomber bomber, Enemy e) {
+	public AIMedium(Board board, Bomber bomber, Enemy e) {
+		_board = board;
 		_bomber = bomber;
 		_e = e;
 	}
 	@Override
 	public int calculateDirection() {
-
-		if(_bomber == null)
+		//board might not have bomber yet after initializing the ai
+		if(_bomber == null) {
+			_bomber = _board.getBomber();
+		}
+		//if bomber is still null then just go random
+		if(_bomber == null || _bomber.getLivesLost())
 			return random.nextInt(4);
 
 		int vertical = random.nextInt(2);

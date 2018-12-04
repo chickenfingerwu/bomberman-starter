@@ -55,6 +55,16 @@ public class LayeredEntity extends Entity {
 			_entities.removeLast();
 		}
 	}
+
+	public Entity getHiddenItem(){
+		Entity e = getTopEntity();
+		for(int i = 0; i < _entities.size(); i++){
+			if(!(_entities.get(i) instanceof Grass) && !(_entities.get(i) instanceof Brick) && _entities.get(i) != null){
+				e = _entities.get(i);
+			}
+		}
+		return e;
+	}
 	
 	public void addBeforeTop(Entity e) {
 		_entities.add(_entities.size() - 1, e);

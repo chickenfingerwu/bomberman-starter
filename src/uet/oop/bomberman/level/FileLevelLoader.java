@@ -11,10 +11,7 @@ import uet.oop.bomberman.entities.tile.Portal;
 import uet.oop.bomberman.entities.tile.Wall;
 import uet.oop.bomberman.entities.tile.destroyable.Brick;
 import uet.oop.bomberman.entities.tile.destroyable.DestroyableTile;
-import uet.oop.bomberman.entities.tile.item.BombItem;
-import uet.oop.bomberman.entities.tile.item.FlameItem;
-import uet.oop.bomberman.entities.tile.item.Item;
-import uet.oop.bomberman.entities.tile.item.SpeedItem;
+import uet.oop.bomberman.entities.tile.item.*;
 import uet.oop.bomberman.exceptions.LoadLevelException;
 import uet.oop.bomberman.graphics.Screen;
 import uet.oop.bomberman.graphics.Sprite;
@@ -31,6 +28,7 @@ public class FileLevelLoader extends LevelLoader {
 	 * Ma trận chứa thông tin bản đồ, mỗi phần tử lưu giá trị kí tự đọc được
 	 * từ ma trận bản đồ trong tệp cấu hình
 	 */
+
 	private static char[][] _map;
 	
 	public FileLevelLoader(Board board, int level) throws LoadLevelException {
@@ -41,8 +39,12 @@ public class FileLevelLoader extends LevelLoader {
 	public void loadLevel(int level) {
 		// TODO: đọc dữ liệu từ tệp cấu hình /levels/Level{level}.txt
 		// TODO: cập nhật các giá trị đọc được vào _width, _height, _level, _map
-		String path = "res/levels/Level" + level +".txt";
-		File filePath = new File(path);
+		if(level >= levelsName.length){
+			_board.setShow(4);
+			return;
+		}
+		String path = levelsName[level];;
+		File filePath = new File("res/levels/" + path);
 		try {
 			URL absPath = filePath.toURI().toURL();
 
@@ -158,6 +160,22 @@ public class FileLevelLoader extends LevelLoader {
 										new Brick(x, y, Sprite.brick))
 						);
 						continue;
+					case 'l':
+						_board.addEntity(x + y * _width,
+								new LayeredEntity(x, y,
+										new Grass(x, y, Sprite.grass),
+										new LivesUp(x, y, Sprite.powerup_detonator),
+										new Brick(x, y, Sprite.brick))
+						);
+						continue;
+					case 'y':
+						_board.addEntity(x + y * _width,
+								new LayeredEntity(x, y,
+										new Grass(x, y, Sprite.grass),
+										new FlamePassThroughItem(x, y, Sprite.powerup_flamepass),
+										new Brick(x, y, Sprite.brick))
+						);
+						continue;
 				}
 				int pos = x + y * _width;
 				_board.addEntity(pos, new Grass(x, y, sprite));
@@ -165,7 +183,15 @@ public class FileLevelLoader extends LevelLoader {
 		}
 	}
 
-	public static char[][] get_map() {
+	protected void copyMap(char[][] map){
+		for(int i = 0; i < map.length; i++){
+			for (int j = 0; j < map[i].length; j++){
+				_map[i][j] = map[i][j];
+			}
+		}
+	}
+
+	public char[][] get_map() {
 		return _map;
 	}
 }

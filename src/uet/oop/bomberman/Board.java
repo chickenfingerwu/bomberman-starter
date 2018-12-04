@@ -6,15 +6,14 @@ import uet.oop.bomberman.entities.bomb.Bomb;
 import uet.oop.bomberman.entities.bomb.FlameSegment;
 import uet.oop.bomberman.entities.character.Bomber;
 import uet.oop.bomberman.entities.character.Character;
-import uet.oop.bomberman.entities.character.enemy.Enemy;
 import uet.oop.bomberman.exceptions.LoadLevelException;
 import uet.oop.bomberman.graphics.IRender;
 import uet.oop.bomberman.graphics.Screen;
 import uet.oop.bomberman.input.Keyboard;
 import uet.oop.bomberman.level.FileLevelLoader;
 import uet.oop.bomberman.level.LevelLoader;
+import uet.oop.bomberman.level.SaveAndLoad;
 
-import javax.sound.sampled.Clip;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,12 +27,14 @@ public class Board implements IRender {
 	protected Game _game;
 	protected Keyboard _input;
 	protected Screen _screen;
-	
+	protected SaveAndLoad saverLoader;
 	public Entity[] _entities;
 	public List<Character> _characters = new ArrayList<>();
 	protected List<Bomb> _bombs = new ArrayList<>();
 	private List<Message> _messages = new ArrayList<>();
-	
+
+	protected boolean _bomberWin = false;
+
 	private int _screenToShow = -1; //1:endgame, 2:changelevel, 3:paused
 	
 	private int _time = Game.TIME;
@@ -44,16 +45,16 @@ public class Board implements IRender {
 		_game = game;
 		_input = input;
 		_screen = screen;
-		
 		loadLevel(1); //start in level 1
+		saverLoader = new SaveAndLoad(this, (FileLevelLoader) _levelLoader);
 	}
 	
 	@Override
 	public void update() {
 		if( _game.isPaused() ) return;
-		
-		updateEntities();
+
 		updateCharacters();
+		updateEntities();
 		updateBombs();
 		updateMessages();
 		detectEndGame();
@@ -64,6 +65,9 @@ public class Board implements IRender {
 			}
 			else if(_screenToShow == 1){
 				Game.getAudio().setCurrentMusic(Game.getAudio().getGameOver());
+			}
+			else if(_screenToShow == 4){
+				Game.getAudio().setCurrentMusic(Game.getAudio().getEnding());
 			}
 		}
 
@@ -98,6 +102,10 @@ public class Board implements IRender {
 	}
 	
 	public void nextLevel() {
+		if(_levelLoader.getLevel() + 1 >= _levelLoader.getLevelsLength()){
+			_bomberWin = true;
+			return;
+		}
 		_points += _levelPoint;
 		loadLevel(_levelLoader.getLevel() + 1);
 	}
@@ -108,7 +116,6 @@ public class Board implements IRender {
 	 */
 
 	public void loadLevel(int level) {
-
 		_time = Game.TIME;
 		_screenToShow = 2;
 		_game.resetScreenDelay();
@@ -131,7 +138,12 @@ public class Board implements IRender {
 					public void run() {
 						synchronized (Game.getAudio().getStageTheme()) {
 							//wait for the beginning music to finish
-							while (Game.getAudio().getCurrentMusic().getMicrosecondLength() != Game.getAudio().getCurrentMusic().getMicrosecondPosition()) {
+							if(Game.getAudio().isMusicOn()) {
+								while (Game.getAudio().getCurrentMusic().getMicrosecondLength() != Game.getAudio().getCurrentMusic().getMicrosecondPosition()) {
+									if(!Game.getAudio().isMusicOn()){
+										break;
+									}
+								}
 							}
 							Game.getAudio().setCurrentMusic(Game.getAudio().getStageTheme());
 						}
@@ -139,6 +151,9 @@ public class Board implements IRender {
 				}.start();
 		} catch (LoadLevelException e) {
 			System.out.println("can't load level");
+			endGame();
+		}
+		catch (NullPointerException e){
 			endGame();
 		}
 	}
@@ -152,16 +167,29 @@ public class Board implements IRender {
 	}
 
 	protected void detectEndGame() {
-		if(_time <= 0)
+		if(_time <= 0 || _bomberWin)
 			endGame();
 	}
-	
+
 	public void endGame() {
-		_screenToShow = 1;
-		_game.resetScreenDelay();
+		if(!_bomberWin) {
+			_screenToShow = 1;
+		}
+		else {
+			_screenToShow = 4;
+			_bomberWin = false;
+		}
 		_game.pause();
-		Game.getAudio().getCurrentMusic().stop();
-		Game.getAudio().setCurrentMusic(Game.getAudio().getGameOver());
+		_game.resetScreenDelay();
+		if(Game.getAudio().getCurrentMusic() != null) {
+			Game.getAudio().getCurrentMusic().stop();
+			if(_screenToShow == 1) {
+				Game.getAudio().setCurrentMusic(Game.getAudio().getGameOver());
+			}
+			else if(_screenToShow == 4){
+				Game.getAudio().setCurrentMusic(Game.getAudio().getEnding());
+			}
+		}
 	}
 	
 	public boolean detectNoEnemies() {
@@ -188,6 +216,12 @@ public class Board implements IRender {
 				break;
 			case 3:
 				_screen.drawPaused(g);
+				break;
+			case 4:
+				_screen.drawWinGame(g, _points + _levelPoint);
+				if(_game.get_input().enter ){
+					_game.setRestartAllOver();
+				}
 				break;
 		}
 	}
@@ -232,9 +266,9 @@ public class Board implements IRender {
 		Character cur;
 		while(itr.hasNext()) {
 			cur = itr.next();
-			
-			if(cur instanceof Bomber)
+			if(cur instanceof Bomber) {
 				return (Bomber) cur;
+			}
 		}
 		
 		return null;
@@ -419,6 +453,14 @@ public class Board implements IRender {
 
 	public int getHeight() {
 		return _levelLoader.getHeight();
+	}
+
+	public void saveGame(String name){
+		saverLoader.saveGame(name);
+	}
+
+	public void loadSave(String name){
+		saverLoader.loadSave(name);
 	}
 
 	public Keyboard get_input() {

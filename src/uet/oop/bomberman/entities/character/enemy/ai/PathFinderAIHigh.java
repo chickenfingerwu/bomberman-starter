@@ -20,6 +20,8 @@ public class PathFinderAIHigh {
     Coordinates playerPos;
     Coordinates enenemyPos;
     Coordinates originPos;
+    private boolean haveNotLoadMap = true;
+    int playerX, playerY;
     ArrayList<Coordinates> path;
     Coordinates[][] map;
 
@@ -32,9 +34,14 @@ public class PathFinderAIHigh {
         _width = _levelMap.getWidth();
         path = new ArrayList<Coordinates>();
         loadLevel();
+        try {
+            playerPos = map[_bomber.getYTile()][_bomber.getXTile()];
+        }
+        catch (NullPointerException exception){
+            playerPos = map[playerY][playerX];
+        }
         originPos = map[_e.getYTile()][_e.getXTile()];
         enenemyPos = originPos;
-        playerPos = map[_bomber.getYTile()][_bomber.getXTile()];
         findPath();
         makePath();
     }
@@ -46,11 +53,11 @@ public class PathFinderAIHigh {
     public void update(){
         if(_bomber != null) {
             playerPos = map[_bomber.getYTile()][_bomber.getXTile()];
-            originPos = map[_e.getYTile()][_e.getXTile()];
-            path.clear();
-            findPath();
-            makePath();
         }
+        originPos = map[_e.getYTile()][_e.getXTile()];
+        path.clear();
+        findPath();
+        makePath();
     }
 
     /**
@@ -63,10 +70,6 @@ public class PathFinderAIHigh {
             for (int i = 0; i < _width; i++) {
                 char symbol = _levelMap.get_map()[j][i];
                 switch (symbol) {
-                    case 'p':
-                        map[j][i] = new Coordinates(i, j, true);
-                        playerPos = map[j][i];
-                        break;
                     case '1':
                         map[j][i] = new Coordinates(i, j, true);
                         break;
@@ -80,6 +83,12 @@ public class PathFinderAIHigh {
                         else {
                             map[j][i] = new Coordinates(i, j, false);
                         }
+                        break;
+                    case 'p':
+                        map[j][i] = new Coordinates(i, j, true);
+                        playerPos = map[j][i];
+                        playerY = j;
+                        playerX = i;
                         break;
                     default:
                         map[j][i] = new Coordinates(i, j, true);
@@ -133,7 +142,7 @@ public class PathFinderAIHigh {
             //up tile
             if(enenemyPos._y > 0) {
                 Coordinates upTile = map[enenemyPos._y - 1][enenemyPos._x];
-                if(upTile.isWalkable()) {
+                if(upTile.isWalkable() && gameBoard.getBombAt((int) upTile.get_x(), (int) upTile.get_y()) == null) {
                     adjacentTiles.add(upTile);
                 }
             }
@@ -141,7 +150,7 @@ public class PathFinderAIHigh {
             //right tile
             if(enenemyPos._x < _width - 1) {
                 Coordinates rightTile = map[enenemyPos._y][enenemyPos._x + 1];
-                if(rightTile.isWalkable()) {
+                if(rightTile.isWalkable() && gameBoard.getBombAt((int) rightTile.get_x(), (int) rightTile.get_y()) == null) {
                     adjacentTiles.add(rightTile);
                 }
             }
@@ -149,7 +158,7 @@ public class PathFinderAIHigh {
             //down tile
             if(enenemyPos._y < _height - 1) {
                 Coordinates downTile = map[enenemyPos._y + 1][enenemyPos._x];
-                if(downTile.isWalkable()) {
+                if(downTile.isWalkable() && gameBoard.getBombAt((int) downTile.get_x(), (int) downTile.get_y()) == null) {
                     adjacentTiles.add(downTile);
                 }
             }
@@ -157,7 +166,7 @@ public class PathFinderAIHigh {
             //left tile
             if(enenemyPos._x > 0) {
                 Coordinates leftTile = map[enenemyPos._y][enenemyPos._x - 1];
-                if(leftTile.isWalkable()) {
+                if(leftTile.isWalkable() && gameBoard.getBombAt((int) leftTile.get_x(), (int) leftTile.get_y()) == null) {
                     adjacentTiles.add(leftTile);
                 }
             }
@@ -172,10 +181,10 @@ public class PathFinderAIHigh {
                 if(gameBoard.getBombAt(adjacent.get_x(), adjacent.get_y()) == null
                 && !(gameBoard.getCharacterAt(adjacent.get_x(), adjacent.get_y()) instanceof Enemy)
                         && gameBoard.getBombAt(adjacent.get_x(), adjacent.get_y()) == null
-                && (gameBoard.getBombAt(adjacent.get_x() + Game.getBombRadius(), adjacent.get_y()) == null
-                && gameBoard.getBombAt(adjacent.get_x() - Game.getBombRadius(), adjacent.get_y()) == null
-                && gameBoard.getBombAt(adjacent.get_x(), adjacent.get_y() + Game.getBombRadius()) == null
-                && gameBoard.getBombAt(adjacent.get_x(), adjacent.get_y() + Game.getBombRadius()) == null)) {
+                && ((gameBoard.getBombAt(adjacent.get_x() + Game.getBombRadius(), adjacent.get_y()) == null
+                && gameBoard.getBombAt(adjacent.get_x() - Game.getBombRadius(), adjacent.get_y()) == null) &&
+                        (gameBoard.getBombAt(adjacent.get_x(), adjacent.get_y() + Game.getBombRadius()) == null
+                && gameBoard.getBombAt(adjacent.get_x(), adjacent.get_y() - Game.getBombRadius()) == null))) {
 
                     if (!openList.contains(adjacent)) {
                         //compute the adjacent square point

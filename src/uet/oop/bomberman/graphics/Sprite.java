@@ -43,7 +43,9 @@ public class Sprite {
 	
 	public static Sprite player_right_1 = new Sprite(16, 1, 1, SpriteSheet.tiles, 11, 16);
 	public static Sprite player_right_2 = new Sprite(16, 1, 2, SpriteSheet.tiles, 12, 16);
-	
+
+
+
 	public static Sprite player_dead1 = new Sprite(16, 4, 2, SpriteSheet.tiles, 14, 16);
 	public static Sprite player_dead2 = new Sprite(16, 5, 2, SpriteSheet.tiles, 13, 15);
 	public static Sprite player_dead3 = new Sprite(16, 6, 2, SpriteSheet.tiles, 16, 16);
@@ -169,6 +171,8 @@ public class Sprite {
 	| Powerups
 	|--------------------------------------------------------------------------
 	 */
+	public static Sprite voidSprite = new Sprite(16, 15, 15, SpriteSheet.tiles, 16, 16);
+
 	public static Sprite powerup_bombs = new Sprite(16, 0, 10, SpriteSheet.tiles, 16, 16);
 	public static Sprite powerup_flames = new Sprite(16, 1, 10, SpriteSheet.tiles, 16, 16);
 	public static Sprite powerup_speed = new Sprite(16, 2, 10, SpriteSheet.tiles, 16, 16);

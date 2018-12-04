@@ -378,13 +378,10 @@ public class Audio extends JFrame {
             currentMusic.stop();
         }
         else {
-            if(currentMusic == stageStart){
-                currentMusic.start();
-            }
-            else if(currentMusic == stageTheme){
+            if(currentMusic == stageTheme){
                 currentMusic.loop(Clip.LOOP_CONTINUOUSLY);
             }
-            else if(currentMusic == gameOver){
+            else{
                 currentMusic.start();
             }
         }
@@ -402,5 +399,9 @@ public class Audio extends JFrame {
         currentMusic.setFramePosition(0);
         this.currentMusic = currentMusic;
         currentMusic.setFramePosition(0);
+    }
+
+    public Clip getEnding(){
+        return Ending;
     }
 }

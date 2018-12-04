@@ -82,13 +82,6 @@ public class Bomb extends AnimatedEntitiy {
 		//_board.getGame().getAudio().playExploding();
 		_board.getGame().getAudio().playExploding();
 		// TODO: xử lý khi Character đứng tại vị trí Bomb
-		int bombX = Coordinates.pixelToTile(_board.getBomber().getX());
-		int bombY = Coordinates.pixelToTile(_board.getBomber().getY()) - 1;
-
-		if(bombX == _x && bombY == _y){
-			_board.getBomber().kill();
-		}
-
 		// TODO: tạo các Flame
 		int _direction = 0;
 		for(int i = 0; i < 4; i++){

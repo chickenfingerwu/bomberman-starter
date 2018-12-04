@@ -57,9 +57,12 @@ public class InfoPanel extends JPanel {
 			e.printStackTrace();
 		}
 
-		heartResize = heart.getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+		heartResize = heart.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
 		heartIcon = new ImageIcon(heartResize);
 		LivesLabel = new JLabel(new ImageIcon(heartResize));
+		LivesLabel.setHorizontalAlignment(JLabel.LEFT);
+		LivesLabel.setText(": " + game.getBoard().getBomber().getLives() + " remaining");
+		LivesLabel.setForeground(Color.WHITE);
 
 		speakerResize = speaker.getScaledInstance(16, 16, Image.SCALE_SMOOTH);
 		speakerOffResize = speaker_off.getScaledInstance(16, 16, Image.SCALE_SMOOTH);
@@ -131,4 +134,5 @@ public class InfoPanel extends JPanel {
 		pointsLabel.setText("Score: " + t);
 	}
 
+	public void setTextLiveLabel(int t) { LivesLabel.setText(": " + t + " remaining");}
 }

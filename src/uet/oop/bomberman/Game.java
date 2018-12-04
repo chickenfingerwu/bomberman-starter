@@ -33,12 +33,20 @@ public class Game extends Canvas {
 	public static final String TITLE = "BombermanGame";
 
 	boolean restartGame = false;
+	boolean restartAllOver = false;
 
 	private static int BOMBERLIVES = 3;
-	private static final int BOMBRATE = 1;
+	private static final int BOMBRATE = 10;
 	private static final int BOMBRADIUS = 1;
 	private static final double BOMBERSPEED = 1.0;
-	
+
+	/**
+	 * if player can pass through flame then the game will substract this variable by 1 each time it call
+	 * kill() method of Bomber, which means player can pass through flames about 2 times after eating flamepass powerup
+	 */
+	//TODO: make this the number of time the player can be hit by flame, currently this depends on how many time the game call kill() method of bomber
+	private static final int TIMEFORFLAMEPASS = 100;
+
 	public static final int TIME = 200;
 	public static final int POINTS = 0;
 	
@@ -48,15 +56,16 @@ public class Game extends Canvas {
 	protected static int bombRadius = BOMBRADIUS;
 	protected static double bomberSpeed = BOMBERSPEED;
 	protected static int bomberLives =  BOMBERLIVES;
-	
+	protected static boolean flamePassThrough = false;
+	private static int timeForFlamePassPowerUp = 0;
+
 	protected int _screenDelay = SCREENDELAY;
 	
 	private Keyboard _input;
 	private static Audio _audio;
 	private boolean _running = false;
 	private boolean _paused = true;
-	private static boolean _poweredUp = false;
-	
+
 	private Board _board;
 	private Screen screen;
 	private Frame _frame;
@@ -65,6 +74,7 @@ public class Game extends Canvas {
 	private int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
 	
 	public Game(Frame frame) {
+
 		_frame = frame;
 		_frame.setTitle(TITLE);
 
@@ -145,6 +155,11 @@ public class Game extends Canvas {
 				delta--;
 			}
 
+			if(timeForFlamePassPowerUp <= 0){
+				flamePassThrough = false;
+				timeForFlamePassPowerUp = 0;
+			}
+
 			if(_paused) {
 				if(_screenDelay <= 0) {
 					_board.setShow(-1);
@@ -174,12 +189,11 @@ public class Game extends Canvas {
                 }
             }
             else {
-                if(_paused && _board.getShow() != 2 && _board.getShow() != 1){
+                if(_paused && _board.getShow() != 2 && _board.getShow() != 1 && _board.getShow() != 4){
                     isPausing = true;
                 }
                 if(!_paused && isPausing){
                     isPausing = false;
-                    //_audio.getStageTheme().loop(Clip.LOOP_CONTINUOUSLY);
 					_audio.setMusicOn();
                 }
             }
@@ -191,8 +205,12 @@ public class Game extends Canvas {
 			if(restartGame){
 				resetGameVariables();
 			}
-			
+			else if(restartAllOver){
+				resetGameVariables();
+			}
+
 			frames++;
+			_frame.setLives(_board.getBomber().getLives());
 			if(System.currentTimeMillis() - timer > 1000) {
 				_frame.setTime(_board.subtractTime());
 				_frame.setPoints(_board.getPoints());
@@ -211,13 +229,22 @@ public class Game extends Canvas {
 		_paused = false;
 		_board.getBomber().remove();
 		_board.getBomber().setAlive();
-		addBombRate(-(getBombRate() - 1));
-		addBombRadius(-(getBombRadius() - 1));
-		addBomberSpeed(-(getBomberSpeed() - 1));
+		addBombRate(-(getBombRate() - BOMBRATE));
+		addBombRadius(-(getBombRadius() - BOMBRADIUS));
+		addBomberSpeed(-(getBomberSpeed() - BOMBERSPEED));
+		addLives(-(getBomberLives() - BOMBERLIVES));
+		flamePassThrough = false;
+		timeForFlamePassPowerUp = 0;
 		Game.getAudio().getCurrentMusic().stop();
-		_board.loadLevel(_board.getLevel().getLevel());
+		if(_board.getShow() == 1) {
+			_board.loadLevel(_board.getLevel().getLevel());
+			restartGame = false;
+		}
+		else if(_board.getShow() == 4){
+			_board.loadLevel(1);
+			restartAllOver = false;
+		}
 		_board.resetTime();
-		restartGame = false;
 	}
 
 	public static void playSoundEffect(){
@@ -233,10 +260,23 @@ public class Game extends Canvas {
 	}
 	
 	public static int getBombRadius() { return bombRadius; }
-	
-	public static void addBomberSpeed(double i) {
-		bomberSpeed += i;
+
+	public static int getBomberLives() { return bomberLives; }
+
+	public static boolean isFlamePassThrough() { return flamePassThrough; }
+
+	public static void makeFlamePass() {
+		flamePassThrough = true;
+		timeForFlamePassPowerUp += TIMEFORFLAMEPASS;
 	}
+
+	public static void addFlamePassTime(int i){
+		timeForFlamePassPowerUp += i;
+	}
+
+	public static void addBomberSpeed(double i) { bomberSpeed += i; }
+
+	public static void addLives(int i) { bomberLives += i; }
 	
 	public static void addBombRadius(int i) {
 		bombRadius += i;
@@ -262,6 +302,10 @@ public class Game extends Canvas {
 		restartGame = true;
 	}
 
+	public void setRestartAllOver(){
+		restartAllOver = true;
+	}
+
 	public boolean isPaused() {
 		return _paused;
 	}
@@ -270,7 +314,7 @@ public class Game extends Canvas {
 		_paused = true;
 	}
 
-	public static int getBOMBERLIVES(){ return bomberLives; }
+	public int getTimeforflamepass(){ return timeForFlamePassPowerUp; }
 
 	public static Audio getAudio() { return _audio; }
 }

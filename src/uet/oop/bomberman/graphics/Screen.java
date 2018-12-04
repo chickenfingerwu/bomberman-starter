@@ -129,6 +129,31 @@ public class Screen {
 		Area a = new Area(r);
 	}
 
+	public void drawWinGame(Graphics g, int points) {
+
+		g.setColor(Color.black);
+		g.fillRect(0, 0, getRealWidth(), getRealHeight());
+
+		Font font = new Font("Arial", Font.PLAIN, 20 * Game.SCALE);
+		g.setFont(font);
+		g.setColor(Color.yellow);
+		drawCenteredString("YOU WON", getRealWidth(), getRealHeight(), g);
+
+		font = new Font("Arial", Font.PLAIN, 10 * Game.SCALE);
+		g.setFont(font);
+		g.setColor(Color.yellow);
+		drawCenteredString("POINTS: " + points, getRealWidth(), getRealHeight() + (Game.TILES_SIZE * 2) * Game.SCALE, g);
+
+		font = new Font("Arial", Font.PLAIN, 12 * Game.SCALE);
+		g.setFont(font);
+		g.setColor(Color.magenta);
+		drawCenteredString("PRESS ENTER TO RESTART GAME", getRealWidth(), getRealHeight() + (Game.TILES_SIZE * 4) * Game.SCALE, g);
+
+		int w = getRealWidth();
+		int h = getRealHeight() + (Game.TILES_SIZE * 4) * Game.SCALE;
+
+	}
+
 	public void drawChangeLevel(Graphics g, int level) {
 		g.setColor(Color.black);
 		g.fillRect(0, 0, getRealWidth(), getRealHeight());

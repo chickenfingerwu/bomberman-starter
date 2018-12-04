@@ -7,16 +7,24 @@ import uet.oop.bomberman.level.Coordinates;
 
 public class AIHigh extends AI {
     PathFinderAIHigh pathFinder;
+    Board _board;
     Bomber _bomber;
     Enemy _e;
     public AIHigh(Board board, Bomber bomber, Enemy e){
         _bomber = bomber;
         _e = e;
+        _board = board;
         pathFinder = new PathFinderAIHigh(board, _bomber, _e);
     }
 
     @Override
     public int calculateDirection(){
+        //board might not have bomber yet after initializing the ai
+        if(_bomber == null) {
+            _bomber = _board.getBomber();
+            pathFinder._bomber = _bomber;
+        }
+        //if bomber is still null then just go random
         if(_bomber == null || _bomber.getLivesLost()){
             return random.nextInt(4);
         }

@@ -23,7 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Bomber extends Character {
-
+    private boolean _livesLost = false;
+    private int timeTilNextKill = 100;
     private List<Bomb> _bombs;
     protected Keyboard _input;
 
@@ -43,6 +44,12 @@ public class Bomber extends Character {
     @Override
     public void update() {
         clearBombs();
+        if(timeTilNextKill == 0){
+            _livesLost = false;
+        }
+        if(timeTilNextKill > 0) {
+            timeTilNextKill--;
+        }
         if (!_alive) {
             afterKill();
             return;
@@ -52,8 +59,9 @@ public class Bomber extends Character {
         else _timeBetweenPutBombs--;
 
         animate();
-
-        calculateMove();
+        if(!_livesLost) {
+            calculateMove();
+        }
 
         detectPlaceBomb();
 
@@ -63,10 +71,15 @@ public class Bomber extends Character {
     public void render(Screen screen) {
         calculateXOffset();
 
-        if (_alive)
+        if(_livesLost){
+            _sprite = Sprite.movingSprite(Sprite.player_dead1, Sprite.voidSprite, Sprite.player_dead1, _animate, 10);
+            _moving = false;
+        }
+        else if (_alive)
             chooseSprite();
-        else
+        else {
             _sprite = Sprite.player_dead1;
+        }
 
         screen.renderEntity((int) _x, (int) _y - _sprite.SIZE, this);
     }
@@ -120,7 +133,26 @@ public class Bomber extends Character {
     @Override
     public void kill() {
         if (!_alive) return;
-        _alive = false;
+        Entity e = _board.getFlameSegmentAt(getXTile(), getYTile());
+        //if flame hits bomber
+        if (e instanceof Flame || e instanceof FlameSegment) {
+            if (Game.isFlamePassThrough()) {
+                Game.addFlamePassTime(-1);
+                return;
+            }
+        }
+        //if enemy hits bomber
+        if (Game.getBomberLives() > 0 && timeTilNextKill == 0) {
+            Game.getAudio().playLifeLost();
+            Game.addLives(-1);
+            _livesLost = true;
+            timeTilNextKill = 100;
+            return;
+        }
+        if (Game.getBomberLives() == 0) {
+            _livesLost = false;
+            _alive = false;
+        }
     }
 
     @Override
@@ -334,5 +366,13 @@ public class Bomber extends Character {
     }
     public Sprite getSprite(){
         return _sprite;
+    }
+
+    public boolean getLivesLost(){
+        return _livesLost;
+    }
+
+    public int getLives(){
+        return Game.getBomberLives();
     }
 }

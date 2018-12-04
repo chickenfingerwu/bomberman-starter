@@ -159,7 +159,18 @@ public class Flame extends Entity {
 					this.getBottomLeft()._y <= character.getFarRight()._y ||
 					this.getFarRight()._x >= character.getBottomLeft()._x ||
 					this.getFarRight()._y >= character.getBottomLeft()._y) {
-				character.kill();
+				//check if bomber can pass through flame
+				if(character instanceof Bomber) {
+					if(!Game.isFlamePassThrough()) {
+						character.kill();
+					}
+					else {
+						Game.addFlamePassTime(-1);
+					}
+				}
+				else {
+					character.kill();
+				}
 			}
 		}
 		if(bomb != null){
@@ -201,6 +212,16 @@ public class Flame extends Entity {
 	public boolean collide(Entity e) {
 		// TODO: xử lý va chạm với Bomber, Enemy. Chú ý đối tượng này có vị trí chính là vị trí của Bomb đã nổ
 		if(e instanceof Character){
+			//check if bomber can pass through flame
+			if(e instanceof Bomber){
+				if (!Game.isFlamePassThrough()){
+					((Bomber) e).kill();
+					return true;
+				}
+				else {
+					Game.addFlamePassTime(-1);
+				}
+			}
 			((Character) e).kill();
 			return true;
 		}
