@@ -1,14 +1,14 @@
 ﻿1 13 31
 ###############################
-#p    sss *  1 * 2 *  * * *   #
+#p    s**    2 *   *  * * *   #
 # # # #*# # #*#*# # # #*#*#*# #
-#  x*     ***  *  1   * 2 * * #
+#  x*    1***         *   * * #
 # # # # # #*# # #*#*# # # # #*#
-#f    m    x **  *  *         #
+#          x **  *  *         #
 # # # # # # # # # #*# #*# # # #
-#*  *    k *  *      *        #
+#*  *      *  *2     *        #
 # # # # #*# # # #*#*# # # # # #
-#*    **  *       *           #
+#*    **  *       *      1    #
 # #*# # # # # # #*# # # # # # #
 #           *   *  *          #
 ###############################
@@ -30,10 +30,15 @@ Character:
 p - Bomber
 1 - Balloon
 2 - Oneal
+m - Minvo
+k - Kondoria
+d - Doll
 
 Items:
 b - Bomb Item
 f - Flame Item
 s - Speed Item
+l - Plus Lives
+y - Flame Pass Through
 
 Kí tự khác các kí tự trên - Grass
