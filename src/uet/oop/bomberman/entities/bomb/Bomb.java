@@ -84,9 +84,7 @@ public class Bomb extends AnimatedEntitiy {
 		Bomber b = _board.getBomber();
 		if(b.getXTile() == _x && b.getYTile() == _y){
 			if(Game.isFlamePassThrough()){
-				if(_timeAfter == 0){
-					Game.addFlamePassTime(-1);
-				}
+				Game.addFlamePassTime(-1);
 			}
 			else {
 				b.kill();
