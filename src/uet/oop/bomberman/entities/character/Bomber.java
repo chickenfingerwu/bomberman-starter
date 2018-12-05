@@ -133,15 +133,7 @@ public class Bomber extends Character {
     @Override
     public void kill() {
         if (!_alive) return;
-        Entity e = _board.getFlameSegmentAt(getXTile(), getYTile());
-        //if flame hits bomber
-        if (e instanceof Flame || e instanceof FlameSegment) {
-            if (Game.isFlamePassThrough()) {
-                Game.addFlamePassTime(-1);
-                return;
-            }
-        }
-        //if enemy hits bomber
+
         if (Game.getBomberLives() > 0 && timeTilNextKill == 0) {
             Game.getAudio().playLifeLost();
             Game.addLives(-1);

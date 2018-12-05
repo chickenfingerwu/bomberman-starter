@@ -6,18 +6,13 @@ import uet.oop.bomberman.entities.Entity;
 import uet.oop.bomberman.entities.LayeredEntity;
 import uet.oop.bomberman.entities.character.Bomber;
 import uet.oop.bomberman.entities.character.Character;
-import uet.oop.bomberman.entities.character.enemy.Balloon;
-import uet.oop.bomberman.entities.character.enemy.Enemy;
 import uet.oop.bomberman.entities.tile.Grass;
-import uet.oop.bomberman.entities.tile.Tile;
-import uet.oop.bomberman.entities.tile.Wall;
-import uet.oop.bomberman.entities.tile.destroyable.Brick;
 import uet.oop.bomberman.entities.tile.destroyable.DestroyableTile;
 import uet.oop.bomberman.graphics.Screen;
-import uet.oop.bomberman.level.Coordinates;
 
 public class Flame extends Entity {
 
+	public int _timeAfter = 20;
 	protected Board _board;
 	protected int _direction;
 	private int _radius;
@@ -151,37 +146,22 @@ public class Flame extends Entity {
 
 	@Override
 	public void update() {
-		//check original flame for characters or bomber or bombs
-		Character character = _board.getCharacterAt((int) this.getX(), (int) this.getY());
-		Bomb bomb = _board.getBombAt(this.getX(), this.getY());
-		if(character != null) {
-			if (this.getBottomLeft()._x <= character.getFarRight()._x ||
-					this.getBottomLeft()._y <= character.getFarRight()._y ||
-					this.getFarRight()._x >= character.getBottomLeft()._x ||
-					this.getFarRight()._y >= character.getBottomLeft()._y) {
-				//check if bomber can pass through flame
-				if(character instanceof Bomber) {
-					if(!Game.isFlamePassThrough()) {
-						character.kill();
-					}
-					else {
-						Game.addFlamePassTime(-1);
-					}
-				}
-				else {
-					character.kill();
-				}
-			}
+		if(_timeAfter > 0){
+			_timeAfter--;
 		}
+
+		//check original flame for bombs
+		Bomb bomb = _board.getBombAt(this.getX(), this.getY());
 		if(bomb != null){
 			if(!bomb._exploded) {
 				bomb.explode();
 			}
 		}
-
+		Character character;
 		//check flame segments for characters
 		for(int i = 0; i < _flameSegments.length; i++) {
 			Entity flame = _flameSegments[i];
+			flame.update();
 			character = _board.getCharacterAt((int) flame.getX(), (int) flame.getY());
 			bomb = _board.getBombAt(flame.getX(), flame.getY());
 			if(bomb != null){
@@ -195,7 +175,19 @@ public class Flame extends Entity {
 						flame.getBottomLeft()._y <= character.getFarRight()._y ||
 						flame.getFarRight()._x >= character.getBottomLeft()._x ||
 						flame.getFarRight()._y >= character.getBottomLeft()._y) {
-					character.kill();
+					if(character instanceof Bomber){
+						if(Game.isFlamePassThrough()){
+							if(_timeAfter == 0){
+								Game.addFlamePassTime(-1);
+							}
+						}
+						else {
+							character.kill();
+						}
+					}
+					else {
+						character.kill();
+					}
 				}
 			}
 		}

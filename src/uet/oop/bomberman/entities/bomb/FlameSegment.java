@@ -1,6 +1,7 @@
 package uet.oop.bomberman.entities.bomb;
 
 import uet.oop.bomberman.Game;
+import uet.oop.bomberman.entities.AnimatedEntitiy;
 import uet.oop.bomberman.entities.Entity;
 import uet.oop.bomberman.entities.character.Bomber;
 import uet.oop.bomberman.entities.character.enemy.Enemy;
@@ -8,10 +9,11 @@ import uet.oop.bomberman.graphics.Screen;
 import uet.oop.bomberman.graphics.Sprite;
 
 
-public class FlameSegment extends Entity {
+public class FlameSegment extends AnimatedEntitiy {
 
+	protected int _direction;
 	protected boolean _last;
-
+	public int _timeAfter = 20;
 	/**
 	 *
 	 * @param x
@@ -24,6 +26,7 @@ public class FlameSegment extends Entity {
 		_x = x;
 		_y = y;
 		_last = last;
+		_direction = direction;
 
 		switch (direction) {
 			case 0:
@@ -62,12 +65,48 @@ public class FlameSegment extends Entity {
 
 		int xt = (int)_x << 4;
 		int yt = (int)_y << 4;
-		
+
+		switch (_direction) {
+			case 0:
+				if(!_last) {
+					_sprite = Sprite.movingSprite(Sprite.explosion_vertical, Sprite.explosion_vertical1, Sprite.explosion_vertical2, _animate, 15);
+				} else {
+					_sprite = Sprite.movingSprite(Sprite.explosion_vertical_top_last, Sprite.explosion_vertical_top_last1, Sprite.explosion_vertical_top_last2, _animate, 15);
+				}
+				break;
+			case 1:
+				if(!_last) {
+					_sprite = Sprite.movingSprite(Sprite.explosion_horizontal, Sprite.explosion_horizontal1, Sprite.explosion_horizontal2, _animate, 15);
+				} else {
+					_sprite = Sprite.movingSprite(Sprite.explosion_horizontal_right_last, Sprite.explosion_horizontal_right_last1, Sprite.explosion_horizontal_right_last2, _animate, 15);
+				}
+				break;
+			case 2:
+				if(!_last) {
+					_sprite = Sprite.movingSprite(Sprite.explosion_vertical, Sprite.explosion_vertical1, Sprite.explosion_vertical2, _animate, 15);
+				} else {
+					_sprite = Sprite.movingSprite(Sprite.explosion_vertical_down_last, Sprite.explosion_vertical_down_last1, Sprite.explosion_vertical_down_last2, _animate, 15);
+				}
+				break;
+			case 3:
+				if(!_last) {
+					_sprite = Sprite.movingSprite(Sprite.explosion_horizontal, Sprite.explosion_horizontal1, Sprite.explosion_horizontal2, _animate, 15);
+				} else {
+					_sprite = Sprite.movingSprite(Sprite.explosion_horizontal_left_last, Sprite.explosion_horizontal_left_last1, Sprite.explosion_horizontal_left_last2, _animate, 15);
+				}
+				break;
+		}
+
 		screen.renderEntity(xt, yt , this);
 	}
 	
 	@Override
-	public void update() {}
+	public void update() {
+		if(_timeAfter > 0){
+			_timeAfter--;
+		}
+		animate();
+	}
 
 	@Override
 	public boolean collide(Entity e) {
@@ -86,6 +125,9 @@ public class FlameSegment extends Entity {
 		}
 		return true;
 	}
-	
+
+	public int get_timeAfter() {
+		return _timeAfter;
+	}
 
 }

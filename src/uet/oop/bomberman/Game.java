@@ -36,16 +36,11 @@ public class Game extends Canvas {
 	boolean restartAllOver = false;
 
 	private static int BOMBERLIVES = 3;
-	private static final int BOMBRATE = 10;
+	private static final int BOMBRATE = 1;
 	private static final int BOMBRADIUS = 1;
 	private static final double BOMBERSPEED = 1.0;
 
-	/**
-	 * if player can pass through flame then the game will substract this variable by 1 each time it call
-	 * kill() method of Bomber, which means player can pass through flames about 2 times after eating flamepass powerup
-	 */
-	//TODO: make this the number of time the player can be hit by flame, currently this depends on how many time the game call kill() method of bomber
-	private static final int TIMEFORFLAMEPASS = 100;
+	private static final int TIMEFORFLAMEPASS = 2;
 
 	public static final int TIME = 200;
 	public static final int POINTS = 0;
@@ -155,9 +150,10 @@ public class Game extends Canvas {
 				delta--;
 			}
 
-			if(timeForFlamePassPowerUp <= 0){
-				flamePassThrough = false;
-				timeForFlamePassPowerUp = 0;
+			if(flamePassThrough){
+				if(timeForFlamePassPowerUp <= 0){
+					flamePassThrough = false;
+				}
 			}
 
 			if(_paused) {

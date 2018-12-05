@@ -50,7 +50,7 @@ public class Bomb extends AnimatedEntitiy {
 	@Override
 	public void render(Screen screen) {
 		if(_exploded) {
-			_sprite =  Sprite.bomb_exploded2;
+			_sprite =  Sprite.movingSprite(Sprite.bomb_exploded, Sprite.bomb_exploded1, Sprite.bomb_exploded2,_animate, 15);
 			renderFlames(screen);
 		} else
 			_sprite = Sprite.movingSprite(Sprite.bomb, Sprite.bomb_1, Sprite.bomb_2, _animate, 60);
@@ -79,9 +79,20 @@ public class Bomb extends AnimatedEntitiy {
 	protected void explode() {
 		_exploded = true;
 		_timeToExplode = 0;
-		//_board.getGame().getAudio().playExploding();
 		_board.getGame().getAudio().playExploding();
 		// TODO: xử lý khi Character đứng tại vị trí Bomb
+		Bomber b = _board.getBomber();
+		if(b.getXTile() == _x && b.getYTile() == _y){
+			if(Game.isFlamePassThrough()){
+				if(_timeAfter == 0){
+					Game.addFlamePassTime(-1);
+				}
+			}
+			else {
+				b.kill();
+			}
+		}
+
 		// TODO: tạo các Flame
 		int _direction = 0;
 		for(int i = 0; i < 4; i++){
